@@ -1,0 +1,156 @@
+CREATE DATABASE AutoDelovi
+USE AutoDelovi
+
+CREATE TABLE Osoba(
+	id int IDENTITY(1,1) NOT NULL PRIMARY KEY, 
+	ime nvarchar(20) NULL,
+	prezime nvarchar(30) NULL,
+	email varchar(30) NULL,
+	pass varchar(20) NULL,
+	uloga int NULL)
+
+INSERT INTO Osoba
+VALUES ('Mile', 'Krajacic', 'mile@mail.com', '4321', 1);
+GO
+INSERT INTO Osoba
+VALUES ('Denis', 'Krajacic', 'denis@mail.com', '1234', 2);
+GO
+
+CREATE TABLE Proizvodjac(
+	id int IDENTITY(1,1) NOT NULL PRIMARY KEY, 
+	naziv nvarchar(20) NOT NULL,
+	adresa nvarchar(40) NULL,
+	PIB int NOT NULL,
+	mat_broj int NOT NULL,
+	telefon nvarchar(20) NULL,
+	sajt nvarchar(20) NULL)
+
+INSERT INTO Proizvodjac
+VALUES('/',NULL,0, 0, NULL, NULL);
+GO	
+INSERT INTO Proizvodjac
+VALUES('Bosch',NULL,101010100, 11100011, NULL, NULL);
+GO
+INSERT INTO Proizvodjac
+VALUES('Mitsubishi',NULL,101010103, 11103011, NULL, NULL);
+GO
+INSERT INTO Proizvodjac
+VALUES('Bären Batterie GMBH',NULL, 101011155, 11253011, NULL, NULL);
+GO
+INSERT INTO Proizvodjac
+VALUES('Banner',NULL, 101014155, 11653011, NULL, NULL);
+GO
+INSERT INTO Proizvodjac
+VALUES('TopStart',NULL, 177011155, 11290011, NULL, NULL);
+GO
+INSERT INTO Proizvodjac
+VALUES('Valeo',NULL, 101678155, 11200011, NULL, NULL);
+GO
+INSERT INTO Proizvodjac
+VALUES('Lucas',NULL, 145011155, 11563011, NULL, NULL);
+GO
+INSERT INTO Proizvodjac
+VALUES('Ghibaudi Mario',NULL, 101011325, 11789011, NULL, NULL);
+GO
+
+CREATE TABLE Kategorija
+(id int IDENTITY(1,1) NOT NULL PRIMARY KEY, 
+	naziv nvarchar(20) NOT NULL)
+
+INSERT INTO Kategorija
+VALUES('/');
+GO	
+INSERT INTO Kategorija
+VALUES('Alnaser');
+GO
+INSERT INTO Kategorija
+VALUES('Alternator');
+GO
+INSERT INTO Kategorija
+VALUES ('Signalizacija')
+GO
+INSERT INTO Kategorija
+VALUES ('Instalacija')
+GO
+INSERT INTO Kategorija
+VALUES ('Potrošni materijal')
+GO
+INSERT INTO Kategorija
+VALUES ('Akumulator')
+GO
+INSERT INTO Kategorija
+VALUES ('Motor')
+GO
+INSERT INTO Kategorija
+VALUES ('Prekidači')
+GO
+
+CREATE TABLE JedinicaMere
+(id int IDENTITY(1,1) NOT NULL PRIMARY KEY, 
+	naziv nvarchar(20) NOT NULL)
+	
+INSERT INTO JedinicaMere
+VALUES('KOM');
+GO
+INSERT INTO JedinicaMere
+VALUES('PAR');
+GO
+INSERT INTO JedinicaMere
+VALUES('SET');
+GO
+
+CREATE TABLE Artikal(
+	id int IDENTITY(1,1) NOT NULL PRIMARY KEY, 
+	KataloskiBroj nvarchar(20) NOT NULL,
+	OEBroj nvarchar(20) NULL,
+	Naziv nvarchar(50) NOT NULL,
+	JedinicaMere_id int FOREIGN KEY REFERENCES JedinicaMere(id) NOT NULL,
+	Kolicina int NOT NULL,
+	Kategorija_id int FOREIGN KEY REFERENCES Kategorija(id) NULL,
+	Proizvodjac_id int FOREIGN KEY REFERENCES Proizvodjac(id) NULL,
+	BrutoCena float NOT NULL,
+	Rabat float NOT NULL,
+	PDV float NOT NULL,
+	Neto AS BrutoCena - ((BrutoCena*Rabat)/100),
+	Cena AS (BrutoCena - ((BrutoCena*Rabat)/100))+((BrutoCena - ((BrutoCena*Rabat)/100))*PDV)/100)
+	
+INSERT INTO Artikal
+VALUES('107819','Q0000038','Remenica alternatora, DACIA LOGAN 1.4/1.6', 3, 1, 1, 1, 2575.61, 22, 20)
+GO
+
+INSERT INTO Artikal
+VALUES('1237330821','0011567401','Kondenzator, ZASTAVA 101', 1, 2, 1, 1, 359.91, 22, 20)
+GO
+
+INSERT INTO Artikal
+VALUES('720299','28920BU010','Pumpa, PEUGEOT, RENAULT,2 iz', 1, 1, 1, 1, 658.24, 22, 20)
+GO
+
+INSERT INTO Artikal 
+VALUES('K1111A','JZW819653B','Filter kabine, VW PASSAT, sa aktivnim ugljem', 1, 2, 1, 1, 850.78, 22, 20)
+GO
+
+CREATE PROCEDURE Dodaj_Artikal @katbr NVARCHAR(20), @oebr NVARCHAR(20), @naziv NVARCHAR(50), @jedmer INT, @kol INT, @kateg INT, @proiz INT, @bruto FLOAT, @rabat FLOAT, @pdv FLOAT
+AS
+BEGIN
+INSERT INTO Artikal(KataloskiBroj, OEBroj, Naziv, JedinicaMere_id, Kolicina, Kategorija_id, Proizvodjac_id, BrutoCena, Rabat, PDV)
+VALUES(@katbr, @oebr, @naziv, @jedmer, @kol, @kateg, @proiz, @bruto, @rabat, @pdv)
+END
+GO
+
+CREATE PROCEDURE Obrisi_Artikal @id INT
+AS
+BEGIN
+DELETE FROM Artikal
+WHERE id = @id
+END
+GO
+
+CREATE PROCEDURE Izmeni_Artikal @id INT, @katbr NVARCHAR(20), @oebr NVARCHAR(20), @naziv NVARCHAR(50), @jedmer INT, @kol INT, @kateg INT, @proiz INT, @bruto FLOAT, @rabat FLOAT, @pdv FLOAT
+AS
+BEGIN
+UPDATE Artikal
+SET KataloskiBroj = @katbr, OEBroj = @oebr, Naziv = @naziv, JedinicaMere_id = @jedmer, Kolicina = @kol, Kategorija_id = @kateg, Proizvodjac_id = @proiz, BrutoCena = @bruto, Rabat = @rabat, PDV = @pdv
+WHERE id = @id
+END
+GO
